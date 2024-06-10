@@ -1,15 +1,11 @@
 let money, time;
 
 function start () {
-  money = +prompt("Ваш бюджет на месяц?");
-  time = prompt("Введите дату в формате YYYY-MM-DD");  
-
-  while(isNaN(money) || money == '' || money == null) {
-    money = +prompt("Ваш бюджет на месяц?");
-  }
+  money = +promptMust("Ваш бюджет на месяц?", data => !isNaN(+data));
+  // time = prompt("Введите дату в формате YYYY-MM-DD");
 }
 
-start()
+// start()
 
 let appData = {
   budget: parseFloat(money),
@@ -19,17 +15,15 @@ let appData = {
   income: [],
   savings: true,
   chooseExpenses: function() {
-    for (let i = 0; i < 2; i++) {
-      let expensesName = prompt("Введите обязательную статью расходов в этом месяце")
-      let expensesMoney = prompt("Во сколько обойдется?")
-      
-      if (typeof(expensesName) != null && typeof(expensesMoney) != null
-      && expensesName != '' && expensesMoney != '') {
-        console.log('done')
-        appData.expenses[expensesName] = parseFloat(expensesMoney);
-      } else {
-        i--
-      }
+    for (let i = 0; i < 2; ) {
+      promptOption(`Введите ${i+1}-ую обязательную статью расходов в этом месяце`, (expensesName) => {
+        promptOption('Во сколько обойдется?', (expensesMoney) => {
+          if (!isNaN(expensesMoney)) {
+            appData.expenses[expensesName] = parseFloat(expensesMoney);
+            i++
+          }
+        })
+      })
     }
   },
   dayBudget: function() {
@@ -47,7 +41,7 @@ let appData = {
   chooseOptExpenses: function() {
     for (let i = 1; i < 4; i++) {
       let optExpensesName = prompt("Статья необязательных расходов?")
-      
+
       if (typeof(optExpensesName) != null && optExpensesName != '') {
         console.log('done')
         appData.optionalExpenses[i] = optExpensesName;
@@ -57,10 +51,89 @@ let appData = {
     }
   },
   chooseIncome: function() {
-    let items = prompt("Перечислите через запятую виды дополнительного дохода", "")
-    appData.income = items.split(', ')
-    appData.income.push(prompt('может что-то еще?'))
+
+    let items = promptMust('Перечислите через запятую виды дополнительного дохода', items => isNaN(items));
+    appData.income = items.split(',').map(i => i.trim())
+    promptOption('может что-то еще?', moreItems => appData.income.push(...moreItems.split(',').map(i => i.trim())))
     appData.income.sort()
+
+    // перебор через forEach
+    // let messageLines = ["Способы доп. заработка: "]
+    // appData.income.forEach((item, i) => {
+    //   messageLines.push(`${i+1}: ${item} `)
+    // })
+    // alert(messageLines.join('\n'))
+
+      // перебор через map
+    let messageLines = [
+      "Способы доп. заработка: ",
+      ...appData.income.map((item, i) => `${i+1}: ${item}`)
+    ]
+    alert(messageLines.join('\n'))
   }
 }
-console.log(appData)
+
+  function printAppData() {
+    console.log('Наша программа включает в себя данные: ')
+    for (let i in appData) {
+      if (typeof appData[i] == 'function'){
+        continue
+      }
+      console.log(i, appData[i])
+    }
+  }
+
+// promptOption спросит у пользователя title, и вызовет callback в случае, если пользователь что-то введет
+function promptOption(title, callback) {
+  let data = prompt(title)
+
+  if (data !== '' && data !== null) {
+    callback(data);
+  }
+}
+
+// Спросит у пользователя title, и будет спрашивать до тех пор, пока пользователь что-то не введет
+function promptMust(title, checkFn) {
+  // let data = prompt(title);
+  //
+  // первый способ проверить на тип
+  // if (type == "number" && isNaN(+data)) {
+  //   return +data;
+  // }
+  // аналогично для других типов
+  // if (type == "string" && data != null) {
+  //   return data;
+  // }
+  // if (type == "array" && data != null && data.trim().length > 0) {
+  //   return data.split(',').map(i => i.trim());
+  // }
+
+  // второй метод через вызов функции проверки
+  // let data = prompt(title);
+  // if (data != '' && data != null) {
+  //   if (typeof checkFn == "function") {
+  //     if (checkFn(data)) {
+  //       return data;
+  //     }
+  //     // other logic when fail
+  //     continue;
+  //   }
+  //   return data;
+  // }
+  while (true) {
+    let data = prompt(title);
+
+    if (data != '' && data != null) {
+      if (typeof checkFn == "function") {
+        if (checkFn(data)) {
+          return data;
+        }
+        continue;
+      }
+      return data;
+    }
+  }
+}
+// promptMust("Перечислите через запятую виды дополнительного дохода", "array")
+// promptMust("Перечислите через запятую виды дополнительного дохода", data => isNaN(+data))
+// promptMust("Перечислите через запятую виды дополнительного дохода")
