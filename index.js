@@ -1,11 +1,130 @@
+//переменные для верстки
+let startBtn = document.getElementById("start"),
+	budgetValue = document.getElementsByClassName('budget-value')[0],
+	dayBudgetValue = document.getElementsByClassName('daybudget-value')[0],
+	levelValue = document.getElementsByClassName('level-value')[0],
+	expensesValue = document.getElementsByClassName('expenses-value')[0],
+	optionalExpensesValue = document.getElementsByClassName('optionalexpenses-value')[0],
+	incomeValue = document.getElementsByClassName('income-value')[0],
+  monthSavingsValue = document.getElementsByClassName('monthsavings-value')[0],
+  yearSavingsValue = document.getElementsByClassName('yearsavings-value')[0],
+	expensesItem = document.getElementsByClassName('expenses-item'),
+	expensesBtn = document.getElementsByTagName('button')[0],
+	optionalExpensesBtn = document.getElementsByTagName('button')[1],
+  countBtn = document.getElementsByTagName('button')[2],
+  optionalExpensesItem = document.querySelectorAll('.optionalexpenses-item'),
+	incomeItem = document.querySelector('.choose-income'),
+	checkSavings = document.querySelector('#savings'),
+	sumValue = document.querySelector('.choose-sum'),
+  percentValue = document.querySelector('.choose-percent'),
+  yearValue = document.querySelector('.year-value'),
+  monthValue = document.querySelector('.month-value'),
+  dayValue = document.querySelector('.day-value');
+
 let money, time;
 
-function start () {
+startBtn.addEventListener('click', function() {
+  time = prompt("Введите дату в формате YYYY-MM-DD");
   money = +promptMust("Ваш бюджет на месяц?", data => !isNaN(+data));
-  // time = prompt("Введите дату в формате YYYY-MM-DD");
-}
+  appData.budget = money
+  appData.timeData = time
+  budgetValue .textContent = money.toFixed()
+  yearValue.value = new Date(Date.parse(time)).getFullYear()
+  monthValue.value = new Date(Date.parse(time)).getMonth() + 1;
+  dayValue.value = new Date(Date.parse(time)).getDate()
+})
 
-// start()
+expensesBtn.addEventListener('click', function() {
+  let sum = 0
+  for (let i = 0; i < expensesItem.length; ) {
+    let name = expensesItem[i].value
+    let price = expensesItem[++i].value
+
+    // promptOption(`Введите ${i+1}-ую обязательную статью расходов в этом месяце`, (expensesName) => {
+    //   promptOption('Во сколько обойдется?', (expensesMoney) => {
+        if (!isNaN(price)) {
+          appData.expenses[name] = parseFloat(price);
+          sum += +price
+          i++
+        }
+    //   })
+    // })
+  }
+  expensesValue.textContent = sum
+})
+
+optionalExpensesBtn.addEventListener('click', function(){
+  for (let i = 0; i < optionalExpensesItem.length; i++) {
+    let opt = optionalExpensesItem[i].value
+    appData.optionalExpenses[i] = opt
+    optionalExpensesValue.textContent += appData.optionalExpenses[i] + ' '
+
+    // if (typeof(optExpensesName) != null && optExpensesName != '') {
+    //   appData.optionalExpenses[i] = optExpensesName;
+    // } else {
+    //   i--
+    // }
+  }
+})
+
+countBtn.addEventListener('click', function() {
+  if (appData.budget != undefined) {
+
+    let sumExpenses = Object.values(appData.expenses).reduce((sum, value) => sum + value, 0)
+    appData.moneyPerDay = Math.round((appData.budget - sumExpenses) / 30)
+    dayBudgetValue.textContent = appData.moneyPerDay
+
+    if (appData.moneyPerDay < 100) {
+        levelValue.textContent = "Это минимальный уровень достатка!"
+    } else if (appData.moneyPerDay > 100 && appData.moneyPerDay < 2000) {
+        levelValue.textContent = "Это средний уровень достатка!"
+    } else if (appData.moneyPerDay > 2000) {
+        levelValue.textContent = "Это высокий уровень достатка!"
+    } else {
+        levelValue.textContent = "Нажмите 'Начать расчет'"
+        dayBudgetValue.textContent = 'Нажмите "Начать расчет"'
+    }
+  } else {
+    dayBudgetValue.textContent = 'Нажмите "Начать расчет"'
+  }
+})
+
+incomeItem.addEventListener('input', function() {
+  let items = incomeItem.value
+  // items => isNaN(items);
+  appData.income = items.split(',').map(i => i.trim())
+  incomeValue.textContent = appData.income
+})
+
+checkSavings.addEventListener("click", () => {
+  if (appData.savings == true) {
+      appData.savings = false;
+  } else {
+      appData.savings = true;
+  }
+});
+
+sumValue.addEventListener('input', function(){
+  if (appData.savings == true) {
+    let sum = +sumValue.value
+    let percent = +percentValue.value
+    appData.monthIncome = Math.round(sum/12/100*percent)
+    appData.yearIncome = Math.round(sum/100*percent)
+    monthSavingsValue.textContent = appData.monthIncome
+    yearSavingsValue.textContent = appData.yearIncome
+  }
+})
+
+percentValue.addEventListener('input', function(){
+  if (appData.savings == true) {
+    let sum = +sumValue.value
+    let percent = +percentValue.value
+    appData.monthIncome = Math.round(sum/12/100*percent)
+    appData.yearIncome = Math.round(sum/100*percent)
+    monthSavingsValue.textContent = appData.monthIncome
+    yearSavingsValue.textContent = appData.yearIncome
+  }
+})
 
 let appData = {
   budget: parseFloat(money),
@@ -13,84 +132,17 @@ let appData = {
   expenses: {},
   optionalExpenses: {},
   income: [],
-  savings: true,
-  chooseExpenses: function() {
-    for (let i = 0; i < 2; ) {
-      promptOption(`Введите ${i+1}-ую обязательную статью расходов в этом месяце`, (expensesName) => {
-        promptOption('Во сколько обойдется?', (expensesMoney) => {
-          if (!isNaN(expensesMoney)) {
-            appData.expenses[expensesName] = parseFloat(expensesMoney);
-            i++
-          }
-        })
-      })
-    }
-  },
-  dayBudget: function() {
-    appData.moneyPerDay = Math.round(appData.budget / 30)
-    alert('Бюджет на один день: ' + appData.moneyPerDay)
-  },
-  checkSavings: function() {
-    if (appData.savings == true) {
-     let save = +prompt('Какова сумма накоплений?')
-     let persent = +prompt('Под какой процент?')
-     appData.monthIncome = Math.round(save/12/100*persent)
-     alert('Доход в месяц с депозита: ' +  appData.monthIncome)
-    }
-  },
-  chooseOptExpenses: function() {
-    for (let i = 1; i < 4; i++) {
-      let optExpensesName = prompt("Статья необязательных расходов?")
-
-      if (typeof(optExpensesName) != null && optExpensesName != '') {
-        console.log('done')
-        appData.optionalExpenses[i] = optExpensesName;
-      } else {
-        i--
-      }
-    }
-  },
-  chooseIncome: function() {
-
-    let items = promptMust('Перечислите через запятую виды дополнительного дохода', items => isNaN(items));
-    appData.income = items.split(',').map(i => i.trim())
-    promptOption('может что-то еще?', moreItems => appData.income.push(...moreItems.split(',').map(i => i.trim())))
-    appData.income.sort()
-
-    // перебор через forEach
-    // let messageLines = ["Способы доп. заработка: "]
-    // appData.income.forEach((item, i) => {
-    //   messageLines.push(`${i+1}: ${item} `)
-    // })
-    // alert(messageLines.join('\n'))
-
-      // перебор через map
-    let messageLines = [
-      "Способы доп. заработка: ",
-      ...appData.income.map((item, i) => `${i+1}: ${item}`)
-    ]
-    alert(messageLines.join('\n'))
-  }
+  savings: false
 }
-
-  function printAppData() {
-    console.log('Наша программа включает в себя данные: ')
-    for (let i in appData) {
-      if (typeof appData[i] == 'function'){
-        continue
-      }
-      console.log(i, appData[i])
-    }
-  }
 
 // promptOption спросит у пользователя title, и вызовет callback в случае, если пользователь что-то введет
-function promptOption(title, callback) {
-  let data = prompt(title)
+// function promptOption(title, callback) {
+//   let data = prompt(title)
 
-  if (data !== '' && data !== null) {
-    callback(data);
-  }
-}
+//   if (data !== '' && data !== null) {
+//     callback(data);
+//   }
+// }
 
 // Спросит у пользователя title, и будет спрашивать до тех пор, пока пользователь что-то не введет
 function promptMust(title, checkFn) {
@@ -134,18 +186,3 @@ function promptMust(title, checkFn) {
     }
   }
 }
-
-//2.25
-// Задание по проекту
-// - Получить кнопку "Начать расчет" через id
-// - Получить все блоки в правой части программы через классы (которые
-// имеют класс название-value, начиная с <div class="budget-value"></div> и
-// заканчивая <div class="yearsavings-value"></div> )
-// - Получить поля (input) c обязательными расходами через класс
-// (class=”expenses-item”)
-// - Получить кнопки “Утвердить” и “Рассчитать” через Tag, каждую в своей
-// переменной
-// - Получить поля для ввода необязательных расходов (optionalexpenses-item)
-// при помощи querySelectorAll
-// - Получить оставшиеся поля через querySelector (статьи возможного дохода,
-// чекбокс, сумма, процент, год, месяц, день)
