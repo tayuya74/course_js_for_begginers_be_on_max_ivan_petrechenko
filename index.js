@@ -40,15 +40,11 @@ expensesBtn.addEventListener('click', function() {
     let name = expensesItem[i].value
     let price = expensesItem[++i].value
 
-    // promptOption(`Введите ${i+1}-ую обязательную статью расходов в этом месяце`, (expensesName) => {
-    //   promptOption('Во сколько обойдется?', (expensesMoney) => {
-        if (!isNaN(price)) {
-          appData.expenses[name] = parseFloat(price);
-          sum += +price
-          i++
-        }
-    //   })
-    // })
+      if (!isNaN(price)) {
+        appData.expenses[name] = parseFloat(price);
+        sum += +price
+        i++
+      }
   }
   expensesValue.textContent = sum
 })
